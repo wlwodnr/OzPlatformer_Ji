@@ -5,6 +5,8 @@ public class PlayerControll : MonoBehaviour
     private Rigidbody2D rb;
     private bool isGrounded;
 
+    private PlayerAnimationController playerAnim;
+
     [SerializeField] private float moveSpeed;
     [SerializeField] private float jumpForce;
 
@@ -15,24 +17,39 @@ public class PlayerControll : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
 
+        playerAnim = GetComponent<PlayerAnimationController>();
+
+        rb.constraints = RigidbodyConstraints2D.FreezeRotation;
     }
 
     void Update()
     {
+        if (GameManager.Instance != null && !GameManager.Instance.IsGameActive)
+        {
+            horizontalInput = 0f;
+            jumpRequested = false;
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+
+            if (playerAnim != null) playerAnim.ResetAnimation();
+            return;
+        }
+
         if (Input.GetKey(KeyCode.A))
         {
             horizontalInput = -1f;
-            Debug.Log("A입력");
         }
         else if (Input.GetKey(KeyCode.D))
         {
             horizontalInput = 1f;
-            Debug.Log("D입력");
-
         }
         else
         {
-            horizontalInput = 0f; 
+            horizontalInput = 0f;
+        }
+
+        if (playerAnim != null)
+        {
+            playerAnim.UpdateMoveAnimation(horizontalInput);
         }
 
         if (Input.GetKey(KeyCode.Space) && isGrounded)
@@ -54,11 +71,12 @@ public class PlayerControll : MonoBehaviour
 
     public void Jump()
     {
-        if (jumpRequested == true)
+        if (jumpRequested)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
-
             jumpRequested = false;
+
+            if (playerAnim != null) playerAnim.SetJumpAnimation(true);
         }
     }
 
@@ -67,6 +85,8 @@ public class PlayerControll : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGrounded = true;
+
+            if (playerAnim != null) playerAnim.SetJumpAnimation(false);
         }
     }
 
@@ -75,6 +95,8 @@ public class PlayerControll : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGrounded = false;
+
+            if (playerAnim != null) playerAnim.SetJumpAnimation(true);
         }
     }
 }

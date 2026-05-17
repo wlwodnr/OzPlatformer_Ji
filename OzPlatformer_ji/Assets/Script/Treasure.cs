@@ -2,34 +2,22 @@
 
 public class Treasure : MonoBehaviour
 {
-    [SerializeField]
-    private GameObject treasureObject;
-    [SerializeField]
-    private Transform treasureSpanwTranform;
-    void Start()
-    {
-        
-    }
+    [SerializeField] private GameObject treasurePrefab; // 보물상자 '원본 프리팹'을 연결
+    [SerializeField] private Transform treasureSpawnTransform; // 자식인 TreasureTransform을 연결
 
-    void Update()
-    {
-        
-    }
-    public void OnTriggerEnter2D(Collider2D collision)
+    private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.CompareTag("Player"))
         {
+            if (GameManager.Instance != null && GameManager.Instance.CurrentBoxInstance == null)
+            {
+                // 지정된 위치에 상자 생성
+                GameObject newBox = Instantiate(treasurePrefab, treasureSpawnTransform.position, treasureSpawnTransform.rotation);
 
-            if (treasureSpanwTranform != null)
-            {
-                Instantiate(treasureObject, treasureSpanwTranform.position, treasureSpanwTranform.rotation);
-            }
-            else
-            {
-                return;
+                GameManager.Instance.CurrentBoxInstance = newBox;
             }
 
-            Destroy(gameObject);
+            GetComponent<Collider2D>().enabled = false;
         }
     }
 }
